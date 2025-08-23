@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1077910377593",
+    "project_id": "its411-getida",
+    "storage_bucket": "its411-getida.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1077910377593:android:0944e9110f16ebb30970a8",
+        "android_client_info": {
+          "package_name": "com.ITS411.Getida"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDEBLCyaq1sGJEcQP9fN-sCHyB3k6eoz1s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
