@@ -1,8 +1,8 @@
-// app/signup.tsx
+
 import { ThemedText } from "@/components/ThemedText";
 import React, { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { signUpUser } from "../../firebase/auth"; // <-- updated path
+import { signUpUser } from "../../firebase/auth";
 
 export default function SignupScreen() {
   const [email, setEmail] = useState("");

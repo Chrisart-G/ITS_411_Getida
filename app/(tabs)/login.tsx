@@ -1,4 +1,4 @@
-// app/login.tsx
+
 import { ThemedText } from "@/components/ThemedText";
 import auth from "@react-native-firebase/auth";
 import React, { useEffect, useState } from "react";
@@ -13,7 +13,6 @@ import {
   View,
 } from "react-native";
 
-// UPDATED: path moved out of /app
 import {
   addTodoItem,
   deleteTodoItem,
@@ -50,7 +49,6 @@ export default function LoginScreen() {
     const unsubAuth = auth().onAuthStateChanged((u) => {
       if (u) {
         setUser({ uid: u.uid, email: u.email });
-        // subscribe safely
         unsubItems = subscribeUserItems(u.uid, setItems);
       } else {
         setUser(null);

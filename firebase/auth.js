@@ -1,9 +1,8 @@
-// firebase/auth.js
+
 import auth from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
 import { Alert } from "react-native";
 
-/** ───────── AUTH ───────── */
 
 export const signUpUser = async (email, password) => {
   try {
@@ -37,7 +36,7 @@ export const logoutUser = async () => {
   }
 };
 
-/** ───────── TODOS (Firestore) ───────── */
+
 
 export const addTodoItem = async (userId, name, tags) => {
   try {
@@ -64,12 +63,11 @@ export const deleteTodoItem = async (itemId) => {
   }
 };
 
-// BEFORE (needs composite index)
+
 export const subscribeUserItems = (userId, onItems) => {
   return firestore()
     .collection("items")
     .where("userId", "==", userId)
-    // .orderBy("createdAt", "desc")  // <- remove to avoid index requirement
     .onSnapshot(
       (snap) => {
         const list = (snap?.docs ?? []).map((d) => {
@@ -83,7 +81,6 @@ export const subscribeUserItems = (userId, onItems) => {
             createdAt: ts?.toDate?.() ?? (typeof ts === "number" ? new Date(ts) : undefined),
           };
         });
-        // client-side sort (newest first)
         list.sort((a, b) => (b.createdAt?.getTime?.() ?? 0) - (a.createdAt?.getTime?.() ?? 0));
         onItems(list);
       },
