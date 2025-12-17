@@ -1,13 +1,12 @@
-// app/index.tsx  (Auth screen)
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useAuth } from '../src/context/AuthContext';
 
@@ -36,6 +35,7 @@ export default function AuthScreen() {
         await signup(email, password);
         Alert.alert('Success', 'Account created!');
       }
+      // AuthGate in _layout will handle redirecting to /home
     } catch (err: any) {
       console.error('Auth error', err);
       Alert.alert('Error', err.message || 'Unexpected error');
@@ -53,7 +53,6 @@ export default function AuthScreen() {
           : 'Create an account to start tracking groceries.'}
       </Text>
 
-      {/* Mode toggle */}
       <View style={styles.switchRow}>
         <TouchableOpacity
           style={[
@@ -135,7 +134,7 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#111827', padding: 24 },
+  container: { flex: 1, backgroundColor: '#111827', padding: 24, justifyContent: 'center' },
   title: { fontSize: 32, color: '#fff', fontWeight: '700', marginBottom: 8 },
   subtitle: { color: '#e5e7eb', marginBottom: 24 },
   switchRow: {
@@ -151,16 +150,9 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: 'center',
   },
-  switchButtonActive: {
-    backgroundColor: '#f97316',
-  },
-  switchText: {
-    color: '#9ca3af',
-    fontWeight: '600',
-  },
-  switchTextActive: {
-    color: '#ffffff',
-  },
+  switchButtonActive: { backgroundColor: '#f97316' },
+  switchText: { color: '#9ca3af', fontWeight: '600' },
+  switchTextActive: { color: '#ffffff' },
   input: {
     backgroundColor: '#020617',
     borderRadius: 10,
