@@ -33,22 +33,32 @@ const FEATURE_CARDS = [
   {
     title: 'Fast grocery checklist',
     description:
-      'Create lists, set quantity and price, tap items to mark as done, and clear checked items anytime.',
+      'Create multiple lists, add items with quantity and price, tap to mark done, then clear checked items.',
   },
   {
     title: 'Home inventory by category',
     description:
-      'Save what you already have at home, assign categories, then filter and search so you avoid duplicates.',
+      'Save home stock with categories, filter by category, and search by name so you avoid duplicates.',
   },
   {
     title: 'Photos for items',
     description:
-      'Attach an image to items so you remember the exact brand, size, or packaging while shopping.',
+      'Attach a photo to items so you remember the exact brand, size, or packaging while shopping.',
   },
 ]
 
 function normalizeCategory(v: any): string {
   return String(v || '').trim().toLowerCase()
+}
+
+function isValidList(v: any): v is GroceryListDoc {
+  return (
+    v &&
+    typeof v === 'object' &&
+    typeof v.id === 'string' &&
+    typeof v.title === 'string' &&
+    Array.isArray(v.items)
+  )
 }
 
 export default function HomeScreen() {
@@ -64,7 +74,10 @@ export default function HomeScreen() {
       setSavedLists([])
       return
     }
-    const unsub = subscribeToUserGroceryLists(uid, setSavedLists)
+    const unsub = subscribeToUserGroceryLists(uid, (lists) => {
+      const safe = (Array.isArray(lists) ? lists : []).filter(isValidList)
+      setSavedLists(safe)
+    })
     return unsub
   }, [uid])
 
@@ -76,6 +89,10 @@ export default function HomeScreen() {
     const unsub = subscribeToUserInventory(uid, setInventoryItems)
     return unsub
   }, [uid])
+
+  const safeSavedLists = useMemo(() => {
+    return (Array.isArray(savedLists) ? savedLists : []).filter(isValidList)
+  }, [savedLists])
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {}
@@ -209,12 +226,12 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your saved lists ({savedLists.length})</Text>
+          <Text style={styles.sectionTitle}>Your saved lists ({safeSavedLists.length})</Text>
 
-          {savedLists.length === 0 ? (
+          {safeSavedLists.length === 0 ? (
             <Text style={styles.emptyText}>No saved lists yet. Create one above.</Text>
           ) : (
-            savedLists.map((list) => (
+            safeSavedLists.map((list) => (
               <TouchableOpacity
                 key={list.id}
                 style={styles.savedListRow}

@@ -20,17 +20,14 @@ export type InventoryItem = {
 const collection = firestore().collection('inventories')
 
 function sanitizeItems(items: InventoryItem[]): any[] {
-  return items.map((it) => {
-    const clean: any = {
-      id: it.id,
-      name: it.name,
-      quantity: typeof it.quantity === 'number' ? it.quantity : 0,
-      category: it.category || 'Snacks',
-      imageUrl: it.imageUrl ?? null,
-      imagePath: null,
-    }
-    return clean
-  })
+  return (Array.isArray(items) ? items : []).map((it) => ({
+    id: String(it.id),
+    name: String(it.name ?? ''),
+    quantity: typeof it.quantity === 'number' && !Number.isNaN(it.quantity) ? it.quantity : 0,
+    category: (it.category as InventoryCategory) || 'Snacks',
+    imageUrl: it.imageUrl ?? null,
+    imagePath: null,
+  }))
 }
 
 function guessMime(mimeType?: string | null, localUri?: string | null): string {
@@ -41,7 +38,8 @@ function guessMime(mimeType?: string | null, localUri?: string | null): string {
   return 'image/jpeg'
 }
 
-function approxBytesFromBase64(b64: string): number {
+function approxBytesFromBase64(b64: any): number {
+  if (typeof b64 !== 'string') return 0
   const len = b64.length
   return Math.floor((len * 3) / 4)
 }
@@ -66,16 +64,19 @@ export function subscribeToUserInventory(
         cb([])
         return
       }
-      const data = snapshot.data() as any
-      const raw = (data.items as any[]) || []
-      const cleaned: InventoryItem[] = raw.map((i) => ({
-        id: String(i.id),
-        name: String(i.name ?? ''),
-        quantity: typeof i.quantity === 'number' ? i.quantity : 0,
-        category: (i.category as InventoryCategory) || 'Snacks',
-        imageUrl: i.imageUrl ?? null,
+
+      const data = (snapshot.data() as any) ?? {}
+      const raw = Array.isArray(data.items) ? data.items : []
+
+      const cleaned: InventoryItem[] = raw.map((i: any) => ({
+        id: String(i?.id ?? ''),
+        name: String(i?.name ?? ''),
+        quantity: typeof i?.quantity === 'number' && !Number.isNaN(i.quantity) ? i.quantity : 0,
+        category: (i?.category as InventoryCategory) || 'Snacks',
+        imageUrl: i?.imageUrl ?? null,
         imagePath: null,
       }))
+
       cb(cleaned)
     },
     (err) => {
@@ -93,7 +94,7 @@ export async function uploadInventoryItemImage(args: {
 }): Promise<{ downloadURL: string; path: null }> {
   const { localUri, base64, mimeType } = args
 
-  if (!base64 || base64.trim().length === 0) {
+  if (typeof base64 !== 'string' || base64.trim().length === 0) {
     throw new Error('No image data received. Please try selecting the image again.')
   }
 

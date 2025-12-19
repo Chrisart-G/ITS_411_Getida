@@ -22,18 +22,16 @@ export type GroceryListDoc = {
 const collection = firestore().collection('groceryLists')
 
 function sanitizeItems(items: GroceryItem[]): any[] {
-  return items.map((it) => {
+  return (Array.isArray(items) ? items : []).map((it) => {
     const clean: any = {
-      id: it.id,
-      name: it.name,
-      quantity: it.quantity,
+      id: String(it.id),
+      name: String(it.name ?? ''),
+      quantity: typeof it.quantity === 'number' && !Number.isNaN(it.quantity) ? it.quantity : 1,
       done: !!it.done,
       imageUrl: it.imageUrl ?? null,
       imagePath: null,
     }
-    if (typeof it.price === 'number' && !Number.isNaN(it.price)) {
-      clean.price = it.price
-    }
+    if (typeof it.price === 'number' && !Number.isNaN(it.price)) clean.price = it.price
     return clean
   })
 }
@@ -55,7 +53,8 @@ function guessMime(mimeType?: string | null, localUri?: string | null): string {
   return 'image/jpeg'
 }
 
-function approxBytesFromBase64(b64: string): number {
+function approxBytesFromBase64(b64: any): number {
+  if (typeof b64 !== 'string') return 0
   const len = b64.length
   return Math.floor((len * 3) / 4)
 }
@@ -92,22 +91,27 @@ export function subscribeToUserGroceryLists(
   return collection.where('userId', '==', userId).onSnapshot(
     (snap) => {
       const arr: GroceryListDoc[] = []
+
       snap.forEach((doc) => {
-        const data = doc.data() as any
+        const data = (doc.data() as any) ?? {}
+        const items = Array.isArray(data.items) ? (data.items as GroceryItem[]) : []
+
         arr.push({
           id: doc.id,
-          userId: data.userId,
-          title: data.title || 'Untitled list',
-          items: (data.items as GroceryItem[]) || [],
+          userId: String(data.userId ?? ''),
+          title: String(data.title ?? 'Untitled list'),
+          items,
           createdAt: data.createdAt ?? null,
           updatedAt: data.updatedAt ?? null,
         })
       })
+
       arr.sort((a, b) => {
         const ta = toMillis(a.updatedAt) || toMillis(a.createdAt)
         const tb = toMillis(b.updatedAt) || toMillis(b.createdAt)
         return tb - ta
       })
+
       cb(arr)
     },
     (err) => {
@@ -123,13 +127,19 @@ export function subscribeToGroceryList(
 ) {
   return collection.doc(listId).onSnapshot(
     (snapshot) => {
-      if (!snapshot || !snapshot.exists) return cb(null)
-      const data = snapshot.data() as any
+      if (!snapshot || !snapshot.exists) {
+        cb(null)
+        return
+      }
+
+      const data = (snapshot.data() as any) ?? {}
+      const items = Array.isArray(data.items) ? (data.items as GroceryItem[]) : []
+
       cb({
         id: snapshot.id,
-        userId: data.userId,
-        title: data.title || 'Untitled list',
-        items: (data.items as GroceryItem[]) || [],
+        userId: String(data.userId ?? ''),
+        title: String(data.title ?? 'Untitled list'),
+        items,
         createdAt: data.createdAt ?? null,
         updatedAt: data.updatedAt ?? null,
       })
@@ -155,7 +165,7 @@ export async function uploadGroceryItemImage(args: {
 }): Promise<{ downloadURL: string; path: null }> {
   const { localUri, base64, mimeType } = args
 
-  if (!base64 || base64.trim().length === 0) {
+  if (typeof base64 !== 'string' || base64.trim().length === 0) {
     throw new Error('No image data received. Please try selecting the image again.')
   }
 
